@@ -1,3 +1,27 @@
+/**
+ * @file tictactoe.c
+ * @author Baiken Meirambekov (baikenmkv@gmail.com)
+ * @brief A basic tictactoe implementation.
+ * @version 0.1
+ * @date 2022-06-16
+ * 
+ * @copyright Copyright (c) 2022
+ * 
+ * RULES: player moves first, AI chooses an option randomly
+ * NOTES: needs additional features for game improvement such as
+ * 					- Difficulty (Easy, mideium, hard)
+ * 					- Board size (any given, minimum 3x3)
+ * 					- First move (player, AI, random)
+ * 					- Board draw size
+ * 					- Fix EOF
+ * 					- Simulate AI response time (1-2 secs), loadscreen/loadbar
+ * 					- Better (prettier) CLI output
+ * 					- Tip which cells are empty
+ * 					- Code documentation
+ * 					- Parse condition in getPlayerMove() and overall polish of code
+ * 					- Rules of the game
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -40,13 +64,11 @@ void drawMenuScreen(bool* isRunning, char (*board)[BOARDSIZE][BOARDSIZE]) {
 		    playerSelect != 2 &&
 		    playerSelect != 3 )) {
 
-			printf("Please, choose a correct option (1, 2, 3).\n");
+			printf("Please, choose correct option [1-3].\n");
 		} else break;
 	}
 	free(buf);
 
-	printf("You chose %d.\n", playerSelect);
-	
 	switch (playerSelect) {
 		case 1:
 			gCurrentState = PLAY;
@@ -96,17 +118,14 @@ bool checkCell(int pos, char (*board)[BOARDSIZE][BOARDSIZE], char playerSymbol) 
 	if(!pos) return true;
 	
 	int x, y;
-	printf("pos = %d\n", pos);
+
 	pos--;
 	x = pos / 3;
 	y = pos % 3;
 
-	printf("Position: (%d, %d)\n", x, y);
 	if ((*board)[x][y]) {
-		printf("Cell is not empty\n");
 		return false;
 	} // Cell is not empty
-	printf("Cell is empty\n");
 	(*board)[x][y] = playerSymbol;
 	return true; 
 }
@@ -128,7 +147,7 @@ bool processPauseState(char (*board)[BOARDSIZE][BOARDSIZE]) {
 		    playerSelect != 2 &&
 				playerSelect != 3 )) {
 
-			printf("Please, choose a correct option (1, 2, 3).\n");
+			printf("Please, choose a correct option [1-3].\n");
 		} else break;
 	}
 	free(buf);
@@ -155,26 +174,27 @@ bool getPlayerMove(char (*board)[BOARDSIZE][BOARDSIZE], int* movesLeft) {
 	char*  buf = NULL;
 	size_t len;
 	bool   cellEmpty;
+	int 	 inputFail;
 
 	printf("Your turn!\n");
+	printf("Pick a cell [1-9] or Pause [0].\n");
 
 	while (getline(&buf, &len, stdin) && !feof(stdin)) {
-		if (sscanf(buf, "%d", &playerSelect) != 1 ||
+		if ((inputFail = sscanf(buf, "%d", &playerSelect)) != 1 ||
 			//sscanf(buf, "%c", &rem) != 1 || rem != '\n' ||
 			playerSelect < 0 || playerSelect > 9 || 
 			!(cellEmpty = checkCell(playerSelect, board, 'X' ))) {
 
-				if (playerSelect < 0 || playerSelect > 9)
-					printf("Please, choose a correct option (0-9). %d\n", playerSelect);
-				if (!cellEmpty)
+				if (!inputFail || playerSelect < 0 || playerSelect > 9) {
+					printf("Please, choose correct option [0-9].\n");
+					continue;
+				}
+				if (!cellEmpty) {
 					printf("Please, choose an empty cell.\n");
+					continue;
+				}
 		} else break;
-		// if (buf) {
-		// 	free(buf);
-		// 	buf = NULL;
-		// } // WTF
 	}
-	printf("Selected: %d\n", playerSelect);
 	free(buf);
 	// printf("Here\n");
 
@@ -251,7 +271,6 @@ bool processTurn(char (*board)[BOARDSIZE][BOARDSIZE], int* movesLeft) {
 		} // restart or back to main menu
 
 		if (detectedLine(*board)) {
-			printf("Line detected: [PLAYER]\n");
 			gCurrentState = PLAYER_WIN;
 		} // found a line with same symbols
 	} // process player's move
@@ -259,12 +278,10 @@ bool processTurn(char (*board)[BOARDSIZE][BOARDSIZE], int* movesLeft) {
 		gNextMove = PLAYER_MOVE;
 		getAImove(board);
 		if (detectedLine(*board)) {
-			printf("Line detected: [AI]\n");
 			gCurrentState = AI_WIN;
 		}
 	} // process AI's move
 
-	printf("Moves left: %d\n", *movesLeft);
 	if (!--*movesLeft && gCurrentState == PLAY) {
 		gCurrentState = STALEMATE;
 	} // set stalemate, if no more moves are left and no one won this turn
@@ -300,7 +317,7 @@ void drawGameoverScreen() {
 		   (playerSelect != 1 &&
 		    playerSelect != 2 )) {
 
-			printf("Please, choose a correct option (1, 2).\n");
+			printf("Please, choose a correct option [1-2].\n");
 		} else break;
 	}
 	free(buf);
@@ -366,16 +383,3 @@ int main(int argv, char **argc) {
 	} // game state loop
 	return 0;
 }
-
-/**
- * TODO 
- * 
- * Difficulty (Easy, mideium, hard)
- * Board size (any given, minimum 3x3)
- * First move (player, AI, random)
- * getPlayerMove(): parse condition
- * Board draw size
- * Fix EOF
- * Simulate AI response time (1-2 secs)
- * 
- */
