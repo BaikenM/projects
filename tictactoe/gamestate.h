@@ -6,9 +6,11 @@ enum GameState {
 	SETTINGS,
 	PLAY,
 	PAUSE,
+	RESTART,
   PLAYER_WIN,
   AI_WIN,
-  STALEMATE
+  STALEMATE,
+	EXIT
 };
 
 typedef enum GameState eGameState;
